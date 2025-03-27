@@ -4,17 +4,14 @@
 # @Author  : Joisen
 # @File    : test.py.py
 
-import os
-import pandas as pd
 import ujson as json
+
 # 或者
-from concurrent.futures import ProcessPoolExecutor
 import os
 # import orjson
 
-from feature_extract.feature_extract import *
-import numpy as np
 from feature_extract.cal_xts import *
+from shangraoMJ_v6_master.shangraoMJ_v6 import get_score_dict, update, recommend_card
 
 
 def get_dealer(zhuang_id, high_score_id):
@@ -81,6 +78,39 @@ def get_remain_card(discards, fulu, hand_cards):
     return 136 - card_num
 
 
+def generate_all_cards():
+    cards_value = [
+        1, 2, 3, 4, 5, 6, 7, 8, 9,
+        17, 18, 19, 20, 21, 22, 23, 24, 25,
+        33, 34, 35, 36, 37, 38, 39, 40, 41,
+        49, 50, 51, 52, 53, 54, 55
+    ]
+    all_cards = []
+    for v in cards_value:
+        all_cards.extend([v] * 4)
+    return all_cards
+
+
+def get_remain_cards_set(discards, fulu, hand_cards):
+    all_cards = generate_all_cards()
+    used_cards = []
+
+    for discard in discards:
+        used_cards.extend(discard)
+    for fulu_ in fulu:
+        for fl in fulu_:
+            used_cards.extend(fl)
+    for hand_card in hand_cards:
+        used_cards.extend(hand_card)
+
+    remain_cards = copy.deepcopy(all_cards)
+    for card in used_cards:
+        if card in remain_cards:
+            remain_cards.remove(card)
+
+    return remain_cards
+
+
 def get_high_score_seatId(player_ids, high_score_id):
     '''
     :param player_ids: 选手id的一维列表
@@ -107,8 +137,13 @@ def get_json_info_hu(data_dir, store_path):
     # get json file_names
     all_json = os.listdir(data_dir)
     for j_name in all_json:
-        j = open(data_dir + j_name, encoding='utf-8')
-        info = json.load(j)
+        j_path = os.path.join(data_dir, j_name)
+        with open(j_path, encoding='utf-8') as j:
+            try:
+                info = json.load(j)
+            except (json.JSONDecodeError, ValueError):
+                print(f"跳过无效 JSON 文件：{j_path}")
+                continue
         # 庄家id
         zhuang_id = info['zhuang_id']
         # 得到宝牌
@@ -160,6 +195,13 @@ def get_json_info_hu(data_dir, store_path):
                 storeDict['round_'] = round_
                 storeDict['dealer_flag'] = dealer_flag
                 storeDict['high_score'] = high_score
+                wall = get_remain_cards_set(discards, fulu_, handCards)
+                _, score_dict, _ = recommend_card(cards=handCards0, suits=fulu_[0], king_card=king_card,
+                                                  discards=discards, discards_real=discards_seq, discards_op=fulu_,
+                                                  fei_king=fei_king_nums[0], round=round_, seat_id=0, hands=handCards,
+                                                  wall=wall)
+                hand_strength = sum(score_dict.values())
+                storeDict['hand_strength'] = hand_strength
                 storeDict['isHu'] = 1  # 胡牌为1
                 with open(storeFile, 'w', encoding="utf-8") as fp:
                     json.dump(storeDict, fp, indent=4)
@@ -213,6 +255,15 @@ def get_json_info_hu(data_dir, store_path):
                         storeDict['round_'] = round_
                         storeDict['dealer_flag'] = dealer_flag
                         storeDict['high_score'] = high_score
+                        wall = get_remain_cards_set(discards, fulu_, handCards)
+                        _, score_dict, _ = recommend_card(cards=handCards0, suits=fulu_[0], king_card=king_card,
+                                                          discards=discards, discards_real=discards_seq,
+                                                          discards_op=fulu_,
+                                                          fei_king=fei_king_nums[0], round=round_, seat_id=0,
+                                                          hands=handCards,
+                                                          wall=wall)
+                        hand_strength = sum(score_dict.values())
+                        storeDict['hand_strength'] = hand_strength
                         storeDict['isHu'] = 0  # 弃胡为0
                         with open(storeFile, 'w', encoding="utf-8") as fp:
                             json.dump(storeDict, fp, indent=4)
@@ -263,6 +314,15 @@ def get_json_info_hu(data_dir, store_path):
                             storeDict['round_'] = round_
                             storeDict['dealer_flag'] = dealer_flag
                             storeDict['high_score'] = high_score
+                            wall = get_remain_cards_set(discards, fulu_, handCards)
+                            _, score_dict, _ = recommend_card(cards=handCards0, suits=fulu_[0], king_card=king_card,
+                                                              discards=discards, discards_real=discards_seq,
+                                                              discards_op=fulu_,
+                                                              fei_king=fei_king_nums[0], round=round_, seat_id=0,
+                                                              hands=handCards,
+                                                              wall=wall)
+                            hand_strength = sum(score_dict.values())
+                            storeDict['hand_strength'] = hand_strength
                             storeDict['isHu'] = 0  # 弃胡为0
                             with open(storeFile, 'w', encoding="utf-8") as fp:
                                 json.dump(storeDict, fp, indent=4)
@@ -306,6 +366,15 @@ def get_json_info_hu(data_dir, store_path):
                             storeDict['round_'] = round_
                             storeDict['dealer_flag'] = dealer_flag
                             storeDict['high_score'] = high_score
+                            wall = get_remain_cards_set(discards, fulu_, handCards)
+                            _, score_dict, _ = recommend_card(cards=handCards0, suits=fulu_[0], king_card=king_card,
+                                                              discards=discards, discards_real=discards_seq,
+                                                              discards_op=fulu_,
+                                                              fei_king=fei_king_nums[0], round=round_, seat_id=0,
+                                                              hands=handCards,
+                                                              wall=wall)
+                            hand_strength = sum(score_dict.values())
+                            storeDict['hand_strength'] = hand_strength
                             storeDict['isHu'] = 0  # 弃胡为0
                             with open(storeFile, 'w', encoding="utf-8") as fp:
                                 json.dump(storeDict, fp, indent=4)
@@ -320,7 +389,12 @@ if __name__ == '__main__':
     file_path = '/home/zonst/wjh/srmj/data/all/'
     store_path_hu = '/home/zonst/wjh/srmj/data/all/output/'
     for folder in os.listdir(file_path):
-        if len(folder) == 1:
+        try:
+            folder_num = int(folder)
+        except ValueError:
+            # Skip folders that are not purely numeric
+            continue
+        if 0 <= folder_num <= 9:  # 提取编号为0-30文件夹的数据
             folder_path = file_path + folder + '/'
             if os.path.isdir(folder_path):
                 print("处理文件夹:", folder_path)
