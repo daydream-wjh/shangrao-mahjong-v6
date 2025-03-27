@@ -144,7 +144,7 @@ def card_feature_encode(cards_, channels):
 
 def calculate_feature(handCards0, handcards, players_eat, players_pong, players_gang, king_card,
                       discards_seq, remain_cards, self_kings, players_fei_kings, remain_card_num, round_, dealer_flag,
-                      operate_card, is_hu):
+                      operate_card, hand_strength, is_hu):
     '''
     :param handCards0: 高手玩家的手牌 4 *　feature
     :param players_eat: 所有玩家吃的牌 4 *　feature * 4
@@ -235,7 +235,8 @@ def calculate_feature(handCards0, handcards, players_eat, players_pong, players_
     # features.extend(dealer_features)
     # is_hu_feature = extra_feature_encode_4_9(is_hu)
     # features.extend([is_hu_feature])
-
+    hand_strength_feature = extra_feature_encode_4_9(hand_strength)
+    features.extend([hand_strength_feature])
     return features
 
 
@@ -337,15 +338,15 @@ def calculate_feature_score(handCards0, handcards, players_eat, players_pong, pl
 
 
 def card_preprocess(handCards0, handcards, king_card, discards_seq, discards, self_king_num, fei_king_nums, fulu,
-                    remain_card_num, round_, dealer_flag, operate_card, is_hu):
+                    remain_card_num, round_, dealer_flag, operate_card, hand_strength, is_hu):
     players_eat, players_pong, players_gang = split_eat_pong_gang(fulu)
     players_fei_king = get_players_fei_king(fei_king_nums, king_card)
     self_kings = get_self_King(self_king_num, king_card)
     remain_cards = get_remain_card(fulu, handCards0, discards)
     features = calculate_feature(handCards0, handcards, players_eat, players_pong, players_gang, king_card,
                                  discards_seq, remain_cards, self_kings, players_fei_king, remain_card_num, round_,
-                                 dealer_flag, operate_card, is_hu)
-    return torch.tensor(features, dtype=torch.float).reshape(88, 4, 9)
+                                 dealer_flag, operate_card, hand_strength, is_hu)
+    return torch.tensor(features, dtype=torch.float).reshape(89, 4, 9)
 
 
 def card_preprocess_score(handCards0, handcards, king_card, discards_seq, discards, self_king_num, fei_king_nums, fulu,
@@ -367,6 +368,3 @@ def extra_feature_encode_4_9(value):
     """
     # 你也可以在这里先对 value 进行归一化处理
     return [[float(value)] * 9 for _ in range(4)]
-
-
-

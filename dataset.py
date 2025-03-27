@@ -43,9 +43,10 @@ class HuDataset(Dataset):
         dealer_flag = info['dealer_flag']
         label = info['isHu']
         operate_card = info['operate_card']
+        hand_strength = info['hand_strength']
 
         features = card_preprocess(handcards0, handcards, king_card, discards_seq, discards, self_king_num,
-                                   fei_king_nums, fulu_, remain_card_num, round_, dealer_flag, operate_card, label)
+                                   fei_king_nums, fulu_, remain_card_num, round_, dealer_flag, operate_card,hand_strength, label)
 
         return features, label
 
