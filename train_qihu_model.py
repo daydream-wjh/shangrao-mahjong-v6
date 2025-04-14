@@ -11,6 +11,12 @@ from extend_work.discard.densenet import *
 from resnet2 import ResNet50NoPool
 from resnet import ResNet50NoPool as ResNet50
 
+seed = 42
+torch.manual_seed(seed)
+import random
+
+np.random.seed(seed)
+random.seed(seed)
 cudnn.benchmark = True
 
 if __name__ == '__main__':
@@ -49,7 +55,7 @@ if __name__ == '__main__':
     print(f"Validation dataset size: {len(val_dataset)}")
 
     # 设置batch_size
-    batch_size = 128
+    batch_size = 64
 
     # 创建数据加载器
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
@@ -65,12 +71,12 @@ if __name__ == '__main__':
 
     score_model = ResNet50NoPool(1)
     score_model = nn.DataParallel(score_model)
-    state_dict = torch.load("/home/zonst/wjh/srmj/model/model_epoch500.pth", map_location=device)
+    state_dict = torch.load("/home/zonst/wjh/srmj/model/model_epoch50.pth", map_location=device)
     score_model.load_state_dict(state_dict)
     score_model.to(device)
     score_model.eval()  # 切换到推理模式
     # 设置学习率
-    LR = 0.0004
+    LR = 0.001
 
     # 定义优化器
     optim = AdamW(model.parameters(), lr=LR, weight_decay=0.01)
@@ -102,13 +108,13 @@ if __name__ == '__main__':
                 discard_flag = discard_flag.unsqueeze(-1).unsqueeze(-1)  # => [B,1,1,1]
                 discard_flag_4x9 = discard_flag.expand(-1, -1, 4, 9)  # => [B,1,4,9]
                 discard_flag_4x9 = discard_flag_4x9.to(device)
-                score1 = score_model(torch.cat([inputs, discard_flag_4x9], dim=1))
+                score1 = score_model(torch.cat([inputs[:, :88, :, :], discard_flag_4x9], dim=1))
                 discard_flag = torch.tensor(0.0).expand(B)
                 discard_flag = discard_flag.float().unsqueeze(1)  # => [B,1]
                 discard_flag = discard_flag.unsqueeze(-1).unsqueeze(-1)  # => [B,1,1,1]
                 discard_flag_4x9 = discard_flag.expand(-1, -1, 4, 9)  # => [B,1,4,9]
                 discard_flag_4x9 = discard_flag_4x9.to(device)
-                score2 = score_model(torch.cat([inputs, discard_flag_4x9], dim=1))
+                score2 = score_model(torch.cat([inputs[:, :88, :, :], discard_flag_4x9], dim=1))
                 scores = score2 - score1
             # 3. 将分数扩展成 [B, 1, 4, 9] 形状
             #    这样每个样本的分数都能覆盖 4x9 的空间，成为一个新通道
@@ -141,20 +147,20 @@ if __name__ == '__main__':
             print('验证数据长度：', len(val_loader.dataset))
             for feature, label in tqdm(val_loader):
                 inputs = feature.to(device)
-                B = feature.shape[0]
                 targets = label.to(device).float().unsqueeze(1)  # 确保目标标签为 [batch_size, 1]
+                B = feature.shape[0]
                 discard_flag = torch.tensor(1.0).expand(B)
                 discard_flag = discard_flag.float().unsqueeze(1)  # => [B,1]
                 discard_flag = discard_flag.unsqueeze(-1).unsqueeze(-1)  # => [B,1,1,1]
                 discard_flag_4x9 = discard_flag.expand(-1, -1, 4, 9)  # => [B,1,4,9]
                 discard_flag_4x9 = discard_flag_4x9.to(device)
-                score1 = score_model(torch.cat([inputs, discard_flag_4x9], dim=1))
+                score1 = score_model(torch.cat([inputs[:, :88, :, :], discard_flag_4x9], dim=1))
                 discard_flag = torch.tensor(0).expand(B)
                 discard_flag = discard_flag.float().unsqueeze(1)  # => [B,1]
                 discard_flag = discard_flag.unsqueeze(-1).unsqueeze(-1)  # => [B,1,1,1]
                 discard_flag_4x9 = discard_flag.expand(-1, -1, 4, 9)  # => [B,1,4,9]
                 discard_flag_4x9 = discard_flag_4x9.to(device)
-                score2 = score_model(torch.cat([inputs, discard_flag_4x9], dim=1))
+                score2 = score_model(torch.cat([inputs[:, :88, :, :], discard_flag_4x9], dim=1))
                 scores = score2 - score1
                 # 3. 将分数扩展成 [B, 1, 4, 9] 形状
                 #    这样每个样本的分数都能覆盖 4x9 的空间，成为一个新通道

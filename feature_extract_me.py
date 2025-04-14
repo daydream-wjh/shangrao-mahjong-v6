@@ -332,7 +332,7 @@ def calculate_feature_score(handCards0, handcards, players_eat, players_pong, pl
     features.extend([remain_features])
     features.extend([round_features])
     # features.extend(dealer_features)
-    is_hu_feature = extra_feature_encode_4_9(is_hu)
+    is_hu_feature = extra_feature_encode_4_9(is_hu/10.0)
     features.extend([is_hu_feature])
     return features
 

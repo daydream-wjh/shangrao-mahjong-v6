@@ -48,7 +48,7 @@ if __name__ == '__main__':
     print(f"验证集大小: {len(val_dataset)}")
 
     # 设置 DataLoader
-    batch_size = 128
+    batch_size = 64
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
 
@@ -62,11 +62,11 @@ if __name__ == '__main__':
     criterion = nn.MSELoss()
 
     # 定义优化器
-    LR = 0.0005
+    LR = 0.001
     optimizer = optim.AdamW(model.parameters(), lr=LR, weight_decay=0.01)
-
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3)
     # 训练轮次
-    num_epochs = 500
+    num_epochs = 200
 
     # 模型保存目录
     model_dir = "./model"
@@ -113,6 +113,7 @@ if __name__ == '__main__':
 
         # 计算并打印本轮验证的平均损失
         avg_val_loss = val_loss_sum / len(val_loader)
+        scheduler.step(avg_val_loss)
         print(f"验证损失：{avg_val_loss:.4f}")
 
         # 使用 TensorBoard 记录本轮训练和验证损失
@@ -135,7 +136,7 @@ def load_score_model(checkpoint_path, device="cpu"):
     model.to(device)
     model.eval()  # 切换到推理模式
     return model
-if __name__ == "__main__":
-    # 在程序入口处或全局只执行一次
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    score_model = load_score_model("./model/model_epoch30.pth", device=device)
+# if __name__ == "__main__":
+#     # 在程序入口处或全局只执行一次
+#     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#     score_model = load_score_model("./model/model_epoch30.pth", device=device)

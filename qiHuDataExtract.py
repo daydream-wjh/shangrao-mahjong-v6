@@ -3,6 +3,7 @@
 # @Time    : 2022/7/30 10:49
 # @Author  : Joisen
 # @File    : test.py.py
+import statistics
 
 import ujson as json
 
@@ -394,7 +395,7 @@ if __name__ == '__main__':
         except ValueError:
             # Skip folders that are not purely numeric
             continue
-        if 0 <= folder_num <= 9:  # 提取编号为0-30文件夹的数据
+        if 0 <= folder_num <= 60:  # 提取编号为0-30文件夹的数据
             folder_path = file_path + folder + '/'
             if os.path.isdir(folder_path):
                 print("处理文件夹:", folder_path)

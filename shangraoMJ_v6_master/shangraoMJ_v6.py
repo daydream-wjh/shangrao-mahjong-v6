@@ -864,7 +864,14 @@ class JiuYao:
                 if self.discard_score[discard] == 0 and len(self.jy_dis_effct_cards) > 1:
                     self.jy_dis_effct_cards.pop(discard)
                 else:
-                    self.jy_dis_effct_cards[discard].append(self.discard_score[discard])
+                    if discard not in self.jy_dis_effct_cards:
+                        self.jy_dis_effct_cards[discard] = []
+
+                    if discard in self.discard_score:
+                        self.jy_dis_effct_cards[discard].append(self.discard_score[discard])
+                    else:
+                        print(f"Warning: discard_score 中缺少牌 {discard}")
+
         return self.discard_score
 
 
@@ -1934,8 +1941,11 @@ def get_score_dict(cards, suits, king_card, fei_king, padding=[], max_xts=14, is
                 REASON_JSON['xts'] = xts_list[i] - 1
             REASON_JSON['discard_need'] = need_type[i]
             for key in REASON_JSON['discard_need']:
-                for card in REASON_JSON['discard_need'][key][0]:  # TODO 当card = 0时代表宝吊，考虑是否放入摸牌集合中
-                    REASON_JSON['discard_need'][key][1].append(LEFT_NUM_V5[translate16_33(card)])
+                # for card in REASON_JSON['discard_need'][key][0]:  # TODO 当card = 0时代表宝吊，考虑是否放入摸牌集合中
+                #     REASON_JSON['discard_need'][key][1].append(LEFT_NUM_V5[translate16_33(card)])
+                if isinstance(REASON_JSON['discard_need'].get(key, [None])[0], list):
+                    for card in REASON_JSON['discard_need'][key][0]:
+                        REASON_JSON['discard_need'][key][1].append(LEFT_NUM_V5[translate16_33(card)])
             RENSULT_INFO.append(REASON_JSON)
     return score_dict, min_xts, RENSULT_INFO
 
@@ -2133,6 +2143,10 @@ def recommend_card(cards=[], suits=[], king_card=None,
                 result['discard_need'][key][2] = random.randint(15, 20) / 1000.0
                 max_key = key
                 discard_need_real = {key: result['discard_need'][key]}
+        if max_key not in discard_need_real:
+            print("非法 max_key:", max_key)
+            print("当前可用键:", discard_need_real.keys())
+            return None, {}, None  # 或根据需要处理
         discard_need_real[max_key][1], discard_need_real[max_key][0] = MJ.quick_sort(discard_need_real[max_key][1],
                                                                                      discard_need_real[max_key][0], 0,
                                                                                      len(discard_need_real[max_key][
