@@ -1,10 +1,10 @@
-# qihu
+# shangrao-mahjong-v6
 
 上饶麻将 AI 的**第二代：v6 规则引擎 + 深度学习模型训练**。
 
-仓库名 `qihu` 指"弃胡"（能胡的时候要不要胡、以及配套的弃牌/出牌决策）。内容分两块：
+仓库名 `shangrao-mahjong-v6`（原名 `qihu`）指"弃胡"（能胡的时候要不要胡、以及配套的弃牌/出牌决策）。内容分两块：
 
-1. `shangraoMJ_v6_master/` —— v6 规则引擎，是 v5（`majiang` 仓库）的升级版；
+1. `shangraoMJ_v6_master/` —— v6 规则引擎，是 v5（`shangrao-mahjong-engine` 仓库）的升级版；
 2. 根目录的 `train_*.py` / `*DataExtract.py` / `resnet*.py` / `dataset.py` —— 用 PyTorch
    训练"是否弃胡"的二分类模型、局面分数预测模型，以及吃/碰/弃牌三个动作模型。
 
@@ -95,7 +95,7 @@ v6 引擎做的事和 v5 一样：给手牌、副露、宝牌、场面弃牌，�
 ## 目录结构
 
 ```
-qihu/
+shangrao-mahjong-v6/
 ├── shangraoMJ_v6_master/     # v6 规则引擎（唯一"产品代码"目录）
 │   ├── shangraoMJ_v6.py      #   主引擎：牌型类 + 搜索树 + get_RT/get_tingcards + recommend_card/op
 │   ├── lib_MJ.py             #   底层牌库：牌值转换、花色拆分、t1/t2/t3 组合表、快速胡牌
@@ -223,10 +223,10 @@ python train_qihu_model.py    # 2) 训练，权重存 ./model/model{i}.pth
 ## 与同系列仓库的关系
 
 ```
-majiang（v5 规则引擎，2021）
-    └── qihu（本仓库，v6 规则引擎 + 对手剩余牌概率建模 + 弃胡/分数/吃碰模型训练，2021-2022，2025-04 最后一次提交）
-          ├── scmj（四川麻将分支，里面直接带了 shangraoMJ_v6_master/ 的副本，diff 仅 102 行）
-          └── mahjongRL（2024，把 v5 库搬进 mah_lib/，换成 gym + PPO 的强化学习路线）
+shangrao-mahjong-engine（v5 规则引擎，2021）
+    └── shangrao-mahjong-v6（本仓库，v6 规则引擎 + 对手剩余牌概率建模 + 弃胡/分数/吃碰模型训练，2021-2022，2025-04 最后一次提交）
+          ├── sichuan-mahjong-engine（四川麻将分支，里面直接带了 shangraoMJ_v6_master/ 的副本，diff 仅 102 行）
+          └── mahjong-rl-gym（2024，把 v5 库搬进 mah_lib/，换成 gym + PPO 的强化学习路线）
 ```
 
 - v6 与 v5 的类结构一一对应（`PingHu` / `SearchTree_PH` / `Qidui` / `ShiSanLan` / `JiuYao` / `Fan_PH`），
@@ -235,9 +235,9 @@ majiang（v5 规则引擎，2021）
 - `mah_tool/so_lib/shangraoMJ_v2.py` 是更早的 2020 年引擎（金币场版本），
   与 v5/v6 的"组合树 + 有效牌"是完全不同的实现路线（`SearchTree` / `CatchNode` / `OutNode`），
   在本仓库里主要作为 `search_tree_ren.SearchInfo` 的依赖；
-- 本仓库的 `shangraoMJ_v6_master/` 被 `scmj` 原样复制过去当"上饶"分支，说明 v6 是这条线的定稿；
-- 后续 `mahjongRL` 选择了另一条路（不训练离线分类器，而是搭 gym 环境做在线策略学习），
-  两者互补：本仓库出的是"专家动作分类器 + 分数模型"，`mahjongRL` 出的是"策略网络训练骨架"。
+- 本仓库的 `shangraoMJ_v6_master/` 被 `sichuan-mahjong-engine` 原样复制过去当"上饶"分支，说明 v6 是这条线的定稿；
+- 后续 `mahjong-rl-gym` 选择了另一条路（不训练离线分类器，而是搭 gym 环境做在线策略学习），
+  两者互补：本仓库出的是"专家动作分类器 + 分数模型"，`mahjong-rl-gym` 出的是"策略网络训练骨架"。
 
 ## 已知限制 / TODO
 
